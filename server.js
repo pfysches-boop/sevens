@@ -2,27 +2,17 @@ const express = require('express')
 const app = express()
 const http = require('http')
 const server = http.createServer(app)
-const cors = require('cors')
-
-app.use(cors({
-  origin: 'https://pfysches-boop.github.io',
-  optionsSuccessStatus: 200,
-}))
-
-app.use((req, res, next) => {
-  res.header(
-    'Access-Control-Allow-Origin',
-    'https://pfysches-boop.github.io'
-  )
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
-  next()
-})
 
 app.use(express.static(__dirname))
 
 const socketio = require('socket.io')
-const io = new socketio.Server(server)
+const io = new socketio.Server(server, {
+  cors: {
+    origin: 'https://pfysches-boop.github.io',
+    methods: [ 'GET', 'POST' ],
+    credentials: true
+  }
+})
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html')
