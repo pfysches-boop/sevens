@@ -4,7 +4,10 @@ const http = require('http')
 const server = http.createServer(app)
 const cors = require('cors')
 
-app.use(cors())
+app.use(cors({
+  origin: 'https://pfysches-boop.github.io/sevens/',
+  optionsSuccessStatus: 200,
+}))
 
 app.use(express.static(__dirname))
 
