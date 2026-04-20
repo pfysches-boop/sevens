@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<head>
+  <title>Sevens</title>
+  <style>
+    body, div {
+      padding: 0px;
+      margin: 0px;
+      font-size: 5vh;
+    }
+
+    button {
+      font-size: 3vw;
+      background-color: white;
+      cursor: pointer;
+    }
+    
+    .unplayable {
+      background-color: lightgray;
+    }
+
+    .center {
+      max-width: min(100vw, 100vh);
+      margin-left: auto;
+      margin-right: auto;
+      /* margin-top: 25px; */
+      /* background-color: DarkSlateGray; */
+    }
+
+    #opponent-hand-div {
+      width: min(100vw, 100vh);
+      height: 20vh;
+    }
+    #table-div {
+      width: min(100vw, 100vh);
+      height: 40vh;
+    }
+    #client-hand-div {
+      width: min(100vw, 100vh);
+      height: 40vh;
+    }
+
+    .overlay {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: inherit;
+      height: inherit;
+      z-index: 10000;
+      text-align: center;
+      text-shadow: 0px 0px 1px white;
+      background-color: #aaaaffaa;
+      font-size: 5vh;
+    }
+
+    #high-overlay {
+      justify-content: center;
+      align-items: start;
+      font-size: 2vh;
+      height: fit-content;
+      padding: 5px 0px;
+    }
+    #high-overlay label {
+      font-size: 2vh;
+    }
+    #high-overlay td {
+      font-size: 4vh;
+    }
+
+    .menubar {
+      width: 100%;
+      height: fit-content;
+      background-color: #AAAAAA;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .menubar a {
+      float: left;
+      text-align: center;
+      width: 33.1%;
+      margin: 1px 1px;
+      font-size: 3vh;
+      cursor: pointer;
+      background-color: #FF66AA;
+    }
+    .special {
+      animation: special 1s infinite alternate;
+      -webkit-animation: special 1s infinite alternate;
+    }
+
+    @keyframes special {
+      0% { background-color: #6600FF; }
+      100% { background-color: #FF0066; }
+    }
+    @-webkit-keyframes special {
+      0% { background-color: #6600FF; }
+      100% { background-color: #FF0066; }
+    }
+
+    .menubar a:hover {
+      background-color: #AAAAFF;
+    }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div class="menubar"> 
+      <a id="start-game-menuitem">Start New Game</a>
+      <a id="view-scoreboard-menuitem">View Scoreboard</a>
+      <a id="edit-rules-menuitem">Edit Game Rules</a>
+    </div>
+    <div id="opponent-hand-div">
+      <div class="overlay" id="high-overlay" style="visibility: hidden;"></div>
+    </div>
+    <div id="table-div">
+      <div class="overlay" id="main-overlay" style="visibility: hidden;"></div>
+      <table id="table-table">
+        <tr>
+          <td id="spades-high-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="diamonds-high-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="clubs-high-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="hearts-high-cell"></td>
+        </tr>
+        <tr>
+          <td id="spades-low-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="diamonds-low-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="clubs-low-cell"></td>
+          <td class="spacer-cell"></td>
+          <td id="hearts-low-cell"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="menubar">
+      <a id="sort-rank-menuitem">Sort by Rank</a>
+      <a id="sort-suit-menuitem">Sort by Suit</a>
+      <a id="request-card-menuitem" class="special" style="visibility: hidden;">Ask for Card</a>
+    </div>
+    <div id="client-hand-div">
+      <div class="overlay" id="turn-overlay" style="visibility:hidden;"></div>
+    </div>
+
+  </div>
+
+  <script>let exports = {}</script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="js/card.js"></script>
+  <script src="js/main.js"></script>
+</body>

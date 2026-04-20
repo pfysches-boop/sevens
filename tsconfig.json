@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", 
+
+    "module": "NodeNext",
+    "rootDir": "ts", 
+    "outDir": "js", 
+
+    "moduleResolution": "NodeNext", 
+    "moduleDetection": "legacy",
+
+    "esModuleInterop": true, 
+    "forceConsistentCasingInFileNames": true, 
+
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["ts"],
+  "exclude": ["node_modules", "dist", ""]
+}
