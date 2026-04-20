@@ -5,7 +5,7 @@ const server = http.createServer(app)
 const cors = require('cors')
 
 app.use(cors({
-  origin: 'https://pfysches-boop.github.io/sevens/',
+  origin: 'https://pfysches-boop.github.io',
   optionsSuccessStatus: 200,
 }))
 
