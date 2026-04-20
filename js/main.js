@@ -6,7 +6,7 @@ let scores = [];
 */
 let roundsPlayed = 0;
 // @ts-expect-error
-const socket = io('https://sevens-73tl.onrender.com/');
+const socket = io('https://sevens-73tl.onrender.com', { withCredentials: true });
 let playerCount = 0;
 let userCount = 0;
 socket.on('userCount', (count) => {
