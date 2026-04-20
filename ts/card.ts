@@ -84,6 +84,23 @@ class Card {
     return this.suit === other.suit && this.rank === other.rank
   }
 
+  toString(): string {
+    // return this.rank + this.suit
+    let codePoint: string = '0x1F0'
+    codePoint += (
+      this.suit === CardSuit.Spades   ? 'A' :
+      this.suit === CardSuit.Hearts   ? 'B' :
+      this.suit === CardSuit.Diamonds ? 'C' :
+      'D'
+    )
+
+    let finalHexit: number = cardRankToNumber[this.rank]
+    if(finalHexit > 11) finalHexit++
+    codePoint += finalHexit.toString(16)
+
+    return String.fromCodePoint(+codePoint)
+  }
+
   static getDeck(): Card[] {
     const cards: Card[] = []
 
