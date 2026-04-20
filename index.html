@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <head>
   <title>Sevens</title>
+
   <style>
     body, div {
       padding: 0px;
@@ -28,15 +29,30 @@
 
     #opponent-hand-div {
       width: min(100vw, 100vh);
-      height: 20vh;
+      height: 15vh;
     }
     #table-div {
       width: min(100vw, 100vh);
-      height: 40vh;
+      height: 25vh;
     }
     #client-hand-div {
       width: min(100vw, 100vh);
       height: 40vh;
+    }
+
+    @media (min-width: 1900px) {
+      #opponent-hand-div {
+        width: min(100vw, 100vh);
+        height: 20vh;
+      }
+      #table-div {
+        width: min(100vw, 100vh);
+        height: 35vh;
+      }
+      #client-hand-div {
+        width: min(100vw, 100vh);
+        height: 40vh;
+      }
     }
 
     .overlay {
