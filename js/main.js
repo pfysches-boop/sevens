@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 let scores = [];
 /** // TODO //
- * end at seven rounds
+ *
 */
 let roundsPlayed = 0;
 // @ts-expect-error
@@ -70,29 +70,38 @@ const requestCardMenuItem = document.getElementById('request-card-menuitem');
 const clientHandDiv = document.getElementById('client-hand-div');
 const divWidth = clientHandDiv.clientWidth;
 const cardsPerRow = 7;
-const cardWidth = Math.floor(divWidth / cardsPerRow) - (cardsPerRow - 1);
-const cardHeight = Math.floor(cardWidth * 1.2);
+const cardWidth = (Math.floor(divWidth / cardsPerRow) - (cardsPerRow - 1)) * 0.8;
+const cardHeight = Math.floor(cardWidth * 2);
 function makeCardElement(card) {
-    const element = document.createElement('button');
+    const element = document.createElement('a');
     element.style = `
-    width: ${cardWidth}px;
-    height: ${cardHeight}px;
-    border: 1px solid black;
-    border-radius: 3px;
-    margin: 0px ${Math.floor((divWidth - cardWidth * cardsPerRow) / (2.25 * (cardsPerRow)))}px;
+    // border: 1px solid black;
+    // border-radius: 3px;
+    padding: 0px;
+    font-size: ${cardHeight * 0.8}px;
+    margin: 0px 1px;
+    cursor: pointer;
   `;
     if (card !== null) {
-        element.style.color =
-            card.suit === CardSuit.Diamonds || card.suit === CardSuit.Hearts
-                ? 'red'
-                : 'black';
-        element.innerHTML = card.rank + card.suit;
-        if (!isCardPlayable(card))
+        element.innerHTML = card.toString();
+        if (!isCardPlayable(card)) {
             element.className = 'unplayable';
+            element.style.color =
+                card.suit === CardSuit.Diamonds || card.suit === CardSuit.Hearts
+                    ? 'lightpink'
+                    : 'lightgray';
+        }
+        else {
+            element.style.color =
+                card.suit === CardSuit.Diamonds || card.suit === CardSuit.Hearts
+                    ? 'red'
+                    : 'black';
+        }
     }
     else {
-        element.innerHTML = '🍍';
-        element.disabled = true;
+        element.style.color = '#2200dd';
+        element.innerHTML = '🂠';
+        element.onclick = null;
     }
     return { element: element, card: card };
 }
@@ -310,7 +319,7 @@ function updateTable() {
             continue;
         const button = cells[i].children[0];
         button.className = '';
-        button.disabled = true;
+        // button.disabled = true
         button.onclick = null;
     }
 }

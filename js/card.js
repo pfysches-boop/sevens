@@ -87,6 +87,19 @@ class Card {
     equals(other) {
         return this.suit === other.suit && this.rank === other.rank;
     }
+    toString() {
+        // return this.rank + this.suit
+        let codePoint = '0x1F0';
+        codePoint += (this.suit === CardSuit.Spades ? 'A' :
+            this.suit === CardSuit.Hearts ? 'B' :
+                this.suit === CardSuit.Diamonds ? 'C' :
+                    'D');
+        let finalHexit = cardRankToNumber[this.rank];
+        if (finalHexit > 11)
+            finalHexit++;
+        codePoint += finalHexit.toString(16);
+        return String.fromCodePoint(+codePoint);
+    }
     static getDeck() {
         const cards = [];
         for (const suit of Object.keys(CardSuit)) {
