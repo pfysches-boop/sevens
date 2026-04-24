@@ -1,0 +1,145 @@
+body, div {
+  padding: 0px;
+  margin: 0px;
+  font-size: 5vh;
+  font-family: 'Times New Roman', Times, serif;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+}
+
+
+.center {
+  max-width: min(100vw, 100vh);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#opponent-hand-div {
+  display: flex;
+  align-content: center;
+  align-items: start;
+  width: min(100vw, 100vh);
+  height: 15vh;
+}
+#table-div {
+  width: min(100vw, 100vh);
+  height: 25vh;
+  background-color: green;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+#client-hand-div {
+  width: min(100vw, 100vh);
+  height: 40vh;
+}
+
+@media (min-width: 1900px) {
+  #opponent-hand-div {
+    width: min(100vw, 100vh);
+    height: 30vh;
+  }
+  #table-div {
+    width: min(100vw, 100vh);
+    height: 50vh;
+  }
+  #client-hand-div {
+    width: min(100vw, 100vh);
+    height: 40vh;
+  }
+}
+
+.overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: inherit;
+  height: inherit;
+  z-index: 10000;
+  text-align: center;
+  text-shadow: 0px 0px 1px white;
+  background-color: #AAAAFFDD;
+  font-size: 5vh;
+}
+
+#opponent-hand-overlay {
+  justify-content: center;
+  align-items: start;
+  font-size: 3vh;
+  height: fit-content;
+  padding: 5px 0px;
+}
+#opponent-hand-overlay label, #opponent-hand-overlay input {
+  font-size: 3vh;
+}
+#opponent-hand-overlay td {
+  font-size: 4vh;
+}
+
+.menubar {
+  display: flex;
+  width: 100%;
+  height: fit-content;
+  background-color: #AAAAAA;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.menubar a {
+  float: left;
+  text-align: center;
+  flex: 1;
+  margin: 2px 2px;
+  font-size: 3vh;
+  cursor: pointer;
+  background-color: #FF66AA;
+}
+
+.special {
+  animation:         special 500ms infinite alternate;
+  -webkit-animation: special 500ms infinite alternate;
+}
+
+@keyframes special {
+  0%   { background-color: #6600FF; }
+  100% { background-color: #FF0066; }
+}
+@-webkit-keyframes special {
+  0%   { background-color: #6600FF; }
+  100% { background-color: #FF0066; }
+}
+
+.menubar a:hover {
+  background-color: #AAAAFF;
+}
+
+
+:root {
+  --end-position-top:  0px;
+  --end-position-left: 0px;
+}
+
+.moving {
+  animation:         move 200ms linear forwards;
+  -webkit-animation: move 200ms linear forwards;
+}
+
+@keyframes move {
+  0%, 100% { position: relative; }
+  0% { top: 0px; left: 0px; }
+  100% {
+    top: var(--end-position-top);
+    left: var(--end-position-left);
+  }
+}
+@-webkit-keyframes move {
+  0%, 100% { position: relative; }
+  0% { top: 0px; left: 0px; }
+  100% {
+    top: var(--end-position-top);
+    left: var(--end-position-left);
+  }
+}
