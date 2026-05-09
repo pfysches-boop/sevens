@@ -2,7 +2,7 @@
  * player profile pictures
  */
 
-import { Socket } from "socket.io"
+import { Socket } from 'socket.io'
 // @ts-expect-error
 const socket: Socket = io()
 
@@ -13,13 +13,15 @@ const animationDuration_ms: number = parseInt((
   CSSStyleRule).style.animationDuration
 )
 
+const roundCount = 7
+
 enum SortingMode {
   None, ByRank, BySuit,
 }
-let sortingMode: SortingMode = SortingMode.None
+let sortingMode = SortingMode.None
 
 // socket listenrs
-let userCount: number = 0
+let userCount = 0
 socket.on('userCount', (count: number) => {
   userCount = count
 })
@@ -32,13 +34,19 @@ socket.on('direction_in', (newDirection: Direction) => {
   state.direction = newDirection
 })
 
-let names: string[] = []
-socket.on('names_in', (newNames: string[]) => {
-  names = [...newNames]
+let profiles: Profile[] = []
+socket.on('profiles_in', (profilesString: string) => {
+  const parsedProfiles = JSON.parse(profilesString) as
+    { name: string, pictureURI: string}[]
+
+  profiles = parsedProfiles.map(q =>
+    new Profile(q.name, q.pictureURI)
+  )
+
   updateOpponentHandDiv()
 })
 
-let socketIndex: number = -1
+let socketIndex = -1
 let state: GameState = {
   playerCount: 0,
   
@@ -84,7 +92,7 @@ socket.on('state_in', (stateString: string) => {
 
 
 // HTML elements
-const root: HTMLHtmlElement = document.querySelector(':root') as HTMLHtmlElement
+const root = document.querySelector(':root') as HTMLHtmlElement
 
 const startGameMenuItem      = document.getElementById('start-game-menuitem')      as
   HTMLAnchorElement
@@ -119,15 +127,15 @@ const clientHandDiv     = document.getElementById('client-hand-div') as
 const clientHandOverlay = document.getElementById('client-hand-overlay') as
   HTMLDivElement
 
-const divWidth: number = clientHandDiv.clientWidth
-const cardsPerRow: number = 7
-const cardWidth: number = (Math.floor(divWidth / cardsPerRow) - (cardsPerRow - 1)) * 0.8
-const cardHeight: number = Math.floor(cardWidth * 2)
+const divWidth = clientHandDiv.clientWidth
+const cardsPerRow = 7
+const cardWidth = (Math.floor(divWidth / cardsPerRow) - (cardsPerRow - 1)) * 0.8
+const cardHeight = Math.floor(cardWidth * 2)
 
 // HTML listeners
-startGameMenuItem.onclick = (evt: PointerEvent) => { startGame() }
+startGameMenuItem.onclick = () => { startGame() }
 
-viewScoreboardMenuItem.onclick = (evt: PointerEvent) => {
+viewScoreboardMenuItem.onclick = () => {
   if(
     isOpponentHandOverlayVisible() && 
     !isRulesOverlayOpen() &&
@@ -147,7 +155,7 @@ viewScoreboardMenuItem.onclick = (evt: PointerEvent) => {
   
   opponentHandOverlay.replaceChildren(makeScoreTable())
 }
-editRulesMenuItem.onclick = (evt: PointerEvent) => {
+editRulesMenuItem.onclick = () => {
   if(
     isOpponentHandOverlayVisible() && 
     !isScoreOverlayOpen() &&
@@ -167,7 +175,7 @@ editRulesMenuItem.onclick = (evt: PointerEvent) => {
 
   opponentHandOverlay.replaceChildren(makeRulesForm())
 }
-editProfileMenuitem.onclick = (evt: PointerEvent) => {
+editProfileMenuitem.onclick = () => {
   if(
     isOpponentHandOverlayVisible() &&
     !isScoreOverlayOpen() &&
@@ -189,11 +197,11 @@ editProfileMenuitem.onclick = (evt: PointerEvent) => {
   opponentHandOverlay.replaceChildren(makeProfileForm())
 }
 
-sortByRankMenuItem.onclick = (evt: PointerEvent) => {
+sortByRankMenuItem.onclick = () => {
   sortingMode = SortingMode.ByRank
   updateClientHandDiv()
 }
-sortBySuitMenuItem.onclick = (evt: PointerEvent) => {
+sortBySuitMenuItem.onclick = () => {
   sortingMode = SortingMode.BySuit
   updateClientHandDiv()
 }
@@ -229,13 +237,13 @@ function isProfileOverlayOpen():  boolean {
 
 function getNextTurnIndex() {
   return (
-    state.direction === 'cw' ? (state.turnIndex + 1) % state.playerCount :
+    state.direction === Direction.Clockwise ? (state.turnIndex + 1) % state.playerCount :
       (state.turnIndex + state.playerCount - 1) % state.playerCount
   )
 }
 function getLastTurnIndex() {
   return (
-    state.direction === 'cw' ? (state.turnIndex + state.playerCount - 1) % state.playerCount :
+    state.direction === Direction.Clockwise ? (state.turnIndex + state.playerCount - 1) % state.playerCount :
       (state.turnIndex + 1) % state.playerCount
   )
 }
@@ -323,7 +331,7 @@ function makeScoreTable(): HTMLTableElement {
   headerRow.appendChild(labelHeaderCell)
   for(let i = 0; i < state.playerCount; i++) {
     const cell = document.createElement('td')
-    cell.innerHTML = `${names[i]}`
+    cell.innerHTML = `${profiles[i].name}`
     headerRow.appendChild(cell)
   }
   table.appendChild(headerRow)
@@ -338,7 +346,7 @@ function makeScoreTable(): HTMLTableElement {
       const cell = document.createElement('td')
       cell.innerHTML = `${score}`
       
-      if(i === 6 && score === minScore)
+      if(i === roundCount - 1 && score === minScore)
         cell.className = 'special'
 
       row.append(cell)
@@ -397,17 +405,37 @@ function makeProfileForm(): HTMLDivElement {
   form.innerHTML = `
     <div>
       <label for="profile-name-input">Name</label>
-      <input type="text" id="profile-name-input" name="profile" placeholder="Player ${1 + socketIndex}" />
+      <input type="text" id="profile-name-input" name="profile-name" placeholder="Player ${1 + socketIndex}" />
+
+      <br/>
+
+      <label for="profile-picture-input">Picture</label>
+      <input type="file" accept="image/*" id="profile-picture-input" name="profile-picture" />
     </div>
   `
 
   form.onchange = (evt: Event) => {
-    const input: HTMLInputElement = 
+    const nameInput: HTMLInputElement = 
       document.getElementById('profile-name-input') as
         HTMLInputElement
-    const name: string = input.value || input.placeholder
-    names[socketIndex] = name
-    sendNames()
+    const name: string = nameInput.value || nameInput.placeholder
+    profiles[socketIndex].name = name
+
+    const pictureInput: HTMLInputElement =
+      document.getElementById('profile-picture-input') as
+        HTMLInputElement
+    const picture: File | null =
+      pictureInput.files && pictureInput.files.length > 0
+        ? pictureInput.files[0] : null
+    
+    if(picture !== null) {
+      const url: string = URL.createObjectURL(picture)
+      const image: HTMLImageElement = new Image()
+      image.src = url
+      profiles[socketIndex].pictureURI = url
+    }
+
+    sendProfiles()
   }
 
   return form
@@ -422,7 +450,9 @@ function updateOpponentHandDiv(): void {
     const countLabel: HTMLAnchorElement = document.createElement('a')
     countLabel.style.paddingTop = '3vh'
     countLabel.style.whiteSpace = 'pre-line'
-    countLabel.innerHTML = `${names[i]}\nx${state.hands[i].length}`
+    countLabel.innerHTML = 
+      `${profiles[i].name}\nx${state.hands[i].length}` +
+      (profiles[i].pictureURI ? `<image src="${profiles[i].pictureURI}" style="width: 6vh; height: 6vh;"></image>` : '')
     opponentHandDiv.append(element.element, countLabel)
   }
 }
@@ -748,7 +778,7 @@ function enableCardRequest(): void {
 function enableCardGive(): void {
   tableOverlay.style.visibility = ''
   tableOverlay.innerHTML = 
-    `${names[state.lastTurnIndex]} is asking for a card!<br/>` +
+    `${profiles[state.lastTurnIndex].name} is asking for a card!<br/>` +
     `Please click the card you want to give them`
 
   for(let i = 0; i < state.hands[socketIndex].length; i++) {
@@ -791,8 +821,8 @@ function handleOpponentTurn(): void {
   clientHandOverlay.style.visibility = ''
   clientHandOverlay.innerHTML =
     state.givingCard ? 
-      `${names[state.turnIndex]} is selecting a card to give to ${names[state.lastTurnIndex]}...`
-    : `It's ${names[state.turnIndex]}'s turn...`
+      `${profiles[state.turnIndex].name} is selecting a card to give to ${profiles[state.lastTurnIndex].name}...`
+    : `It's ${profiles[state.turnIndex].name}'s turn...`
 }
 
 
@@ -805,7 +835,7 @@ function handleGameOver(): void {
   clientHandOverlay.style.visibility = ''
   clientHandOverlay.innerHTML =
     `Game over!<br/>` +
-    `${names[winnerIndex]} wins!`
+    `${profiles[winnerIndex].name} wins!`
 
   opponentHandOverlay.style.visibility = 'hidden'
   viewScoreboardMenuItem.click()
@@ -817,21 +847,23 @@ function handleGameOver(): void {
 function sendState(): void {
   socket.emit('state_out', JSON.stringify(state))
 }
-function sendNames(): void {
-  socket.emit('names_out', names)
+function sendProfiles(): void {
+  socket.emit('profiles_out', JSON.stringify(profiles))
 }
 
 
 function startGame(): void {
-  if(state.roundsPlayed >= 7) {
+  if(state.roundsPlayed >= roundCount) {
     state.roundsPlayed = 0
     state.scores = []
   }
   
   state.playerCount = userCount
-  for(let i = 0; i < state.playerCount; i++)
-    if(!names[i]) names[i] = `Player ${1 + i}`
-  sendNames()
+  for(let i = 0; i < state.playerCount; i++) {
+    if(!profiles[i]) profiles[i] = new Profile('', '')
+    if(!profiles[i].name) profiles[i].name = `Player ${1 + i}`
+  }
+  sendProfiles()
   
   state.socketIndex = -1
   state.turnIndex = -1
@@ -871,6 +903,6 @@ function endGame(): void {
   }
   state.roundsPlayed++
   
-  if(state.roundsPlayed < 7) startGame()
+  if(state.roundsPlayed < roundCount) startGame()
   else state.gameOver = true
 }

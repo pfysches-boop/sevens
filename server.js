@@ -124,8 +124,8 @@ io.on('connection', (socket) => {
     direction = newDirection
     io.emit('direction_in', newDirection)
   })
-  socket.on('names_out', (names) => {
-    io.emit('names_in', names)
+  socket.on('profiles_out', (profilesString) => {
+    io.emit('profiles_in', profilesString)
   })
 
   socket.on('state_out', (stateString) => {

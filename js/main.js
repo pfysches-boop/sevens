@@ -8,6 +8,7 @@ const socket = io('https://sevens-73tl.onrender.com', { withCredentials: true })
 const cardBack = '🂠';
 const animationDuration_ms = parseInt(Array.from(document.styleSheets[0].cssRules)
     .filter((rule) => rule.selectorText === '.moving')[0].style.animationDuration);
+const roundCount = 7;
 var SortingMode;
 (function (SortingMode) {
     SortingMode[SortingMode["None"] = 0] = "None";
@@ -26,9 +27,10 @@ socket.on('tenScore_in', (newTenScore) => {
 socket.on('direction_in', (newDirection) => {
     state.direction = newDirection;
 });
-let names = [];
-socket.on('names_in', (newNames) => {
-    names = [...newNames];
+let profiles = [];
+socket.on('profiles_in', (profilesString) => {
+    const parsedProfiles = JSON.parse(profilesString);
+    profiles = parsedProfiles.map(q => new Profile(q.name, q.pictureURI));
     updateOpponentHandDiv();
 });
 let socketIndex = -1;
@@ -84,8 +86,8 @@ const cardsPerRow = 7;
 const cardWidth = (Math.floor(divWidth / cardsPerRow) - (cardsPerRow - 1)) * 0.8;
 const cardHeight = Math.floor(cardWidth * 2);
 // HTML listeners
-startGameMenuItem.onclick = (evt) => { startGame(); };
-viewScoreboardMenuItem.onclick = (evt) => {
+startGameMenuItem.onclick = () => { startGame(); };
+viewScoreboardMenuItem.onclick = () => {
     if (isOpponentHandOverlayVisible() &&
         !isRulesOverlayOpen() &&
         !isProfileOverlayOpen()) {
@@ -100,7 +102,7 @@ viewScoreboardMenuItem.onclick = (evt) => {
     viewScoreboardMenuItem.innerHTML = 'Close Scoreboard';
     opponentHandOverlay.replaceChildren(makeScoreTable());
 };
-editRulesMenuItem.onclick = (evt) => {
+editRulesMenuItem.onclick = () => {
     if (isOpponentHandOverlayVisible() &&
         !isScoreOverlayOpen() &&
         !isProfileOverlayOpen()) {
@@ -115,7 +117,7 @@ editRulesMenuItem.onclick = (evt) => {
     editRulesMenuItem.innerHTML = 'Close Game Rules';
     opponentHandOverlay.replaceChildren(makeRulesForm());
 };
-editProfileMenuitem.onclick = (evt) => {
+editProfileMenuitem.onclick = () => {
     if (isOpponentHandOverlayVisible() &&
         !isScoreOverlayOpen() &&
         !isRulesOverlayOpen()) {
@@ -130,11 +132,11 @@ editProfileMenuitem.onclick = (evt) => {
     editProfileMenuitem.innerHTML = 'Close Profile';
     opponentHandOverlay.replaceChildren(makeProfileForm());
 };
-sortByRankMenuItem.onclick = (evt) => {
+sortByRankMenuItem.onclick = () => {
     sortingMode = SortingMode.ByRank;
     updateClientHandDiv();
 };
-sortBySuitMenuItem.onclick = (evt) => {
+sortBySuitMenuItem.onclick = () => {
     sortingMode = SortingMode.BySuit;
     updateClientHandDiv();
 };
@@ -166,11 +168,11 @@ function isProfileOverlayOpen() {
     return editProfileMenuitem.classList.contains('special');
 }
 function getNextTurnIndex() {
-    return (state.direction === 'cw' ? (state.turnIndex + 1) % state.playerCount :
+    return (state.direction === Direction.Clockwise ? (state.turnIndex + 1) % state.playerCount :
         (state.turnIndex + state.playerCount - 1) % state.playerCount);
 }
 function getLastTurnIndex() {
-    return (state.direction === 'cw' ? (state.turnIndex + state.playerCount - 1) % state.playerCount :
+    return (state.direction === Direction.Clockwise ? (state.turnIndex + state.playerCount - 1) % state.playerCount :
         (state.turnIndex + 1) % state.playerCount);
 }
 function isFirstTurn() {
@@ -248,7 +250,7 @@ function makeScoreTable() {
     headerRow.appendChild(labelHeaderCell);
     for (let i = 0; i < state.playerCount; i++) {
         const cell = document.createElement('td');
-        cell.innerHTML = `${names[i]}`;
+        cell.innerHTML = `${profiles[i].name}`;
         headerRow.appendChild(cell);
     }
     table.appendChild(headerRow);
@@ -261,7 +263,7 @@ function makeScoreTable() {
         for (const score of state.scores[i]) {
             const cell = document.createElement('td');
             cell.innerHTML = `${score}`;
-            if (i === 6 && score === minScore)
+            if (i === roundCount - 1 && score === minScore)
                 cell.className = 'special';
             row.append(cell);
         }
@@ -310,14 +312,28 @@ function makeProfileForm() {
     form.innerHTML = `
     <div>
       <label for="profile-name-input">Name</label>
-      <input type="text" id="profile-name-input" name="profile" placeholder="Player ${1 + socketIndex}" />
+      <input type="text" id="profile-name-input" name="profile-name" placeholder="Player ${1 + socketIndex}" />
+
+      <br/>
+
+      <label for="profile-picture-input">Picture</label>
+      <input type="file" accept="image/*" id="profile-picture-input" name="profile-picture" />
     </div>
   `;
     form.onchange = (evt) => {
-        const input = document.getElementById('profile-name-input');
-        const name = input.value || input.placeholder;
-        names[socketIndex] = name;
-        sendNames();
+        const nameInput = document.getElementById('profile-name-input');
+        const name = nameInput.value || nameInput.placeholder;
+        profiles[socketIndex].name = name;
+        const pictureInput = document.getElementById('profile-picture-input');
+        const picture = pictureInput.files && pictureInput.files.length > 0
+            ? pictureInput.files[0] : null;
+        if (picture !== null) {
+            const url = URL.createObjectURL(picture);
+            const image = new Image();
+            image.src = url;
+            profiles[socketIndex].pictureURI = url;
+        }
+        sendProfiles();
     };
     return form;
 }
@@ -330,7 +346,9 @@ function updateOpponentHandDiv() {
         const countLabel = document.createElement('a');
         countLabel.style.paddingTop = '3vh';
         countLabel.style.whiteSpace = 'pre-line';
-        countLabel.innerHTML = `${names[i]}\nx${state.hands[i].length}`;
+        countLabel.innerHTML =
+            `${profiles[i].name}\nx${state.hands[i].length}` +
+                (profiles[i].pictureURI ? `<image src="${profiles[i].pictureURI}" style="width: 6vh; height: 6vh;"></image>` : '');
         opponentHandDiv.append(element.element, countLabel);
     }
 }
@@ -512,7 +530,7 @@ function enableCardRequest() {
 function enableCardGive() {
     tableOverlay.style.visibility = '';
     tableOverlay.innerHTML =
-        `${names[state.lastTurnIndex]} is asking for a card!<br/>` +
+        `${profiles[state.lastTurnIndex].name} is asking for a card!<br/>` +
             `Please click the card you want to give them`;
     for (let i = 0; i < state.hands[socketIndex].length; i++) {
         const card = state.hands[socketIndex][i];
@@ -544,8 +562,8 @@ function handleOpponentTurn() {
     clientHandOverlay.style.visibility = '';
     clientHandOverlay.innerHTML =
         state.givingCard ?
-            `${names[state.turnIndex]} is selecting a card to give to ${names[state.lastTurnIndex]}...`
-            : `It's ${names[state.turnIndex]}'s turn...`;
+            `${profiles[state.turnIndex].name} is selecting a card to give to ${profiles[state.lastTurnIndex].name}...`
+            : `It's ${profiles[state.turnIndex].name}'s turn...`;
 }
 function handleGameOver() {
     const winnerIndex = state.scores.map((q, i) => ({ index: i, value: q }))
@@ -554,7 +572,7 @@ function handleGameOver() {
     clientHandOverlay.style.visibility = '';
     clientHandOverlay.innerHTML =
         `Game over!<br/>` +
-            `${names[winnerIndex]} wins!`;
+            `${profiles[winnerIndex].name} wins!`;
     opponentHandOverlay.style.visibility = 'hidden';
     viewScoreboardMenuItem.click();
     state.gameOver = false;
@@ -562,19 +580,22 @@ function handleGameOver() {
 function sendState() {
     socket.emit('state_out', JSON.stringify(state));
 }
-function sendNames() {
-    socket.emit('names_out', names);
+function sendProfiles() {
+    socket.emit('profiles_out', JSON.stringify(profiles));
 }
 function startGame() {
-    if (state.roundsPlayed >= 7) {
+    if (state.roundsPlayed >= roundCount) {
         state.roundsPlayed = 0;
         state.scores = [];
     }
     state.playerCount = userCount;
-    for (let i = 0; i < state.playerCount; i++)
-        if (!names[i])
-            names[i] = `Player ${1 + i}`;
-    sendNames();
+    for (let i = 0; i < state.playerCount; i++) {
+        if (!profiles[i])
+            profiles[i] = new Profile('', '');
+        if (!profiles[i].name)
+            profiles[i].name = `Player ${1 + i}`;
+    }
+    sendProfiles();
     state.socketIndex = -1;
     state.turnIndex = -1;
     const deck = Card.getDeck();
@@ -609,7 +630,7 @@ function endGame() {
         state.scores[state.roundsPlayed][i] = lastScore + score;
     }
     state.roundsPlayed++;
-    if (state.roundsPlayed < 7)
+    if (state.roundsPlayed < roundCount)
         startGame();
     else
         state.gameOver = true;
